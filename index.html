@@ -95,7 +95,7 @@
         <div class="collapsible"><span id="adjuster" class="caret"></span></div>
 
         <div class="content">
-            <div>Adjust the start time for the Timer</div>
+            <div>Adjust the start time for the Timer. It will turn yellow when there are 90 seconds remaining</div>
             <label for="minutesInput">Minutes:</label><input id="minutesInput" type="number" value="15" min="0" max="30" />
             <label for="secondsInput">Seconds:</label><input id="secondsInput" type="number" value="0" min="0" max="59"/>
         </div>
@@ -118,7 +118,7 @@
     const startText ='Start';
     const resumeText = 'Resume';
     let outerTracker = 15 * 60 * 1000;// this is weird magic number
-    const warningTime = 30 * 1000 // 30 seconds warning time.
+    const warningTime = 90 * 1000 // 90 seconds warning time.
     function getTimeRemaining(endTime) {
         let code = '';
         let seconds;
@@ -191,7 +191,7 @@
                 realSeconds = ~~document.getElementById("secondsInput").value;
                 timerSeconds = realMins * 60 + realSeconds;
             } catch (err) {
-                timerSeconds = 15 * 60; // 15 mins;
+                timerSeconds = 15 * 60; // default to 15 mins if there was an error;
             }
 
             let d = new Date();
