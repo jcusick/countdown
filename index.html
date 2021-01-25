@@ -1,1 +1,262 @@
-hello, World!
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        body {
+            background-color : #FDFDFD;
+        }
+
+        button {
+            border-color: #222222;
+        }
+
+        .clock {
+            border: 1px solid #222222;
+            font-size: 5em;
+        }
+        .finished { background-color: red }
+        .warning { background-color: yellow;
+        }
+        .running { background-color: green;
+        }
+
+        #clockdiv {
+            width: 50%;
+            margin: 0 auto;
+            color: #222222;
+        }
+        .controls {
+            width: 50%;
+            margin: 0 auto;
+            padding-top: 10px;
+        }
+        #outer {
+            width: 100%;
+        }
+
+        /* Style the button that is used to open and close the collapsible content */
+        .collapsible {
+            background-color: #eee;
+            color: #444;
+            cursor: pointer;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 15px;
+        }
+
+        .active, .collapsible:hover {
+            /*background-color: #ccc;*/
+        }
+        /* Style the collapsible content. Note: hidden by default */
+        .content {
+            display: none;
+            overflow: hidden;
+            background-color: #f1f1f1;
+        }
+        .caret {
+            height: 20px;  /*height of icon */
+            width: 20px;  /*width of icon */
+            display: inline-block;
+            flex-direction: row;
+            background: url(arrowRight.png) no-repeat 0 0;
+        }
+        .active > .caret{
+            border-left-color: transparent;
+            background: url(arrowDown.png) no-repeat 0 0;
+        }
+        .caret:after{
+            content: '';
+            display: block;
+            height: 20px;  /*height of icon */
+            width: 20px;  /*width of icon */
+            position: absolute;
+            /*where to replace the icon */
+            top: 0;
+            left: -40px;
+            background:  url(arrowDown.png) no-repeat 0 0;
+        }
+
+    </style>
+
+</head>
+<body>
+<div id="outer" >
+    <div id="clockdiv" class="clock finished warning running"></div>
+    <div class="controls">
+        <input id="startButton" type="button" value="Start" />
+        <input id="stopButton" type="button" value="Stop" disabled />
+        <input id="pauseButton" type="button" value="Pause" disabled />
+    </div>
+    <div class="controls">
+        <div class="collapsible"><span id="adjuster" class="caret"></span></div>
+
+        <div class="content">
+            <div>Adjust the start time for the Timer</div>
+            <label for="minutesInput">Minutes:</label><input id="minutesInput" type="number" value="15" min="0" max="30" />
+            <label for="secondsInput">Seconds:</label><input id="secondsInput" type="number" value="0" min="0" max="59"/>
+        </div>
+    </div>
+
+</div>
+
+
+<script>
+    // Set a valid end date.
+    // Calculate the time remaining.
+    // Convert the time to a usable format.
+    // Output the clock data as a reusable object.
+    // Display the clock on the page, and stop the clock when it reaches zero.
+
+    const startbtn = document.getElementById('startButton');
+    const stopbtn = document.getElementById('stopButton');
+    const pausebtn = document.getElementById('pauseButton');
+
+    const startText ='Start';
+    const resumeText = 'Resume';
+    let outerTracker = 15 * 60 * 1000;// this is weird magic number
+    const warningTime = 30 * 1000 // 30 seconds warning time.
+    function getTimeRemaining(endTime) {
+        let code = '';
+        let seconds;
+        let minutes;
+        const total = Date.parse(endTime) - Date.parse((new Date()).toString());
+
+        const precision = 0;
+        let subTotal = total.toFixed(precision).replace('-', '') / 1000;
+        if (total > 0 ) {
+            seconds = Math.floor(subTotal % 60);
+            minutes = Math.floor((subTotal/60) % 60);
+        } else {
+            seconds = Math.ceil(subTotal % 60);
+            minutes = Math.floor((subTotal / 60) % 60) ;
+        }
+
+        return {
+            total,
+            subTotal,
+            minutes,
+            seconds,
+            code
+        };
+    }
+
+    function initialLoadClock(id, endtime) {
+        const clock = document.getElementById(id);
+        clock.classList.add('running', 'warning');
+        const t = getTimeRemaining(endtime);
+        clock.innerHTML = t.minutes + ':' +
+            (t.seconds).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false});
+    }
+
+    let theTimer;
+
+    function getMessage(endtime, clock) {
+        const t = getTimeRemaining(endtime);
+        outerTracker = t.total;
+        let msg;
+        if (t.total <= warningTime && !(t.total <= warningTime - 1000)) {
+            clock.classList.remove('running');
+        } else if (t.total === 0) {
+            clock.classList.remove('running', 'warning');
+        }
+        msg = t.minutes + ':' +
+            (t.seconds).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false});
+        clock.innerHTML = msg;
+    }
+
+    function initializeClock(id, endtime, actionType) {
+        const clock = document.getElementById(id);
+        if (actionType === startText) {
+            clock.classList.add('running', 'warning');
+        }
+        getMessage(endtime, clock);
+        theTimer = setInterval(getMessage, 1000, endtime, clock);
+    }
+
+    /*
+        returns a date
+     */
+    function getStartTime(actionType) {
+
+        let realMins;
+        let realSeconds;
+        let timerSeconds;
+        if (actionType === startText) {
+            try {
+                realMins = ~~document.getElementById("minutesInput").value;
+                realSeconds = ~~document.getElementById("secondsInput").value;
+                timerSeconds = realMins * 60 + realSeconds;
+            } catch (err) {
+                timerSeconds = 15 * 60; // 15 mins;
+            }
+
+            let d = new Date();
+            d.setSeconds(d.getSeconds() + timerSeconds);
+            return d;
+        } else {
+            let d = new Date();
+            d.setSeconds(d.getSeconds() + (outerTracker/1000));
+            return d;
+        }
+    }
+
+
+
+    function startTimer () {
+        //initializeClock('clockdiv', getStartTime(timeMinutes));
+        //initializeClock('clockdiv', getStartTime(timeSeconds));
+        if (startbtn.value===startText) {
+            initializeClock('clockdiv', getStartTime(startText), startText);
+        } else {
+            // change this to REsume TExt
+            initializeClock('clockdiv', getStartTime(resumeText), resumeText);
+        }
+        startbtn.setAttribute('disabled', 'disabled');
+        startbtn.value = startText;
+        stopbtn.removeAttribute('disabled');
+        pausebtn.removeAttribute('disabled');
+    }
+
+    function stopTimer () {
+        startbtn.removeAttribute('disabled');
+        stopbtn.setAttribute('disabled', 'disabled');
+        pausebtn.setAttribute('disabled', 'disabled');
+        clearInterval(theTimer);
+    }
+
+    function pauseTimer () {
+        startbtn.removeAttribute('disabled');
+        startbtn.value = resumeText;
+        stopbtn.setAttribute('disabled', 'disabled');
+        pausebtn.setAttribute('disabled', 'disabled');
+        clearInterval(theTimer);
+    }
+
+    function setCollapsible () {
+        let i;
+        let coll = document.getElementsByClassName("collapsible");
+        for (i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function() {
+                this.classList.toggle("active");
+                let content = this.nextElementSibling;
+                if (content.style.display === "block") {
+                    content.style.display = "none";
+                } else {
+                    content.style.display = "block";
+                }
+            });
+        }
+    }
+    startbtn.addEventListener('click', startTimer);
+    stopbtn.addEventListener('click', stopTimer);
+    pausebtn.addEventListener('click', pauseTimer);
+
+    initialLoadClock('clockdiv', getStartTime(startText))
+    setCollapsible();
+</script>
+</body>
+</html>
