@@ -62,11 +62,11 @@
             width: 20px;  /*width of icon */
             display: inline-block;
             flex-direction: row;
-            background: url(arrowRight.png) no-repeat 0 0;
+            background: url(arrowRight2.png) no-repeat 0 0;
         }
         .active > .caret{
             border-left-color: transparent;
-            background: url(arrowDown.png) no-repeat 0 0;
+            background: url(arrowDown2.png) no-repeat 0 0;
         }
         .caret:after{
             content: '';
@@ -95,9 +95,10 @@
         <div class="collapsible"><span id="adjuster" class="caret"></span></div>
 
         <div class="content">
-            <div>Adjust the start time for the Timer. It will turn yellow when there are 90 seconds remaining</div>
+            <div>Adjust the start time for the Timer in the boxes here.</div>
             <label for="minutesInput">Minutes:</label><input id="minutesInput" type="number" value="15" min="0" max="30" />
             <label for="secondsInput">Seconds:</label><input id="secondsInput" type="number" value="0" min="0" max="59"/>
+            <div>The Timer will start in green, then turn yellow at 90 seconds, then turn red at 0 seconds. </div>
         </div>
     </div>
 
